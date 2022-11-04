@@ -13,6 +13,9 @@ public class Main {
         // реализуйте алгоритм здесь
         UserService user = new UserServiceImpl();
         user.createUsersTable();
+        user.createUsersTable();
+        user.createUsersTable();
+        user.createUsersTable();
         user.saveUser("Name1", "LastName1", (byte) 20);
         user.saveUser("Name2", "LastName2", (byte) 25);
         user.saveUser("Name3", "LastName3", (byte) 31);
@@ -20,6 +23,9 @@ public class Main {
         System.out.println(user.getAllUsers());
         user.dropUsersTable();
         user.cleanUsersTable();
+
+
+
 //        UserService userService = new UserServiceImpl();
 //        userService.createUsersTable();
 //        userService.saveUser("Name1", "LastName1", (byte) 20);

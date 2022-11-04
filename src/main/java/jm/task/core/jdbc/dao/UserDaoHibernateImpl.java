@@ -9,6 +9,9 @@ import org.hibernate.query.Query;
 import java.util.List;
 
 public class UserDaoHibernateImpl implements UserDao {
+
+    Transaction transaction = null;
+
     public UserDaoHibernateImpl() {
 
     }
@@ -16,10 +19,10 @@ public class UserDaoHibernateImpl implements UserDao {
 
     @Override
     public void createUsersTable() {
-        Transaction transaction = null;
         try (Session session = Util.getSessionFactory().openSession()) {
             transaction = session.beginTransaction();
-            //cleanUsersTable();
+            User user = new User("name", "lastName", (byte) 13L);
+            session.save(user);
             transaction.commit();
         } catch (Exception e) {
             if (transaction != null) {
@@ -32,19 +35,35 @@ public class UserDaoHibernateImpl implements UserDao {
 
     @Override
     public void dropUsersTable() {
-        List<User> userListDelete = getAllUsers();
-        userListDelete.clear();
+        try (Session session = Util.getSessionFactory().openSession()) {
+            transaction = session.beginTransaction();
+            Query query = session.createQuery("DELETE FROM User");
+            query.executeUpdate();
+            transaction.commit();
+        } catch (Exception e) {
+            if (transaction != null) {
+                transaction.rollback();
+            }
+            e.printStackTrace();
+        }
     }
 
     @Override
     public void saveUser(String name, String lastName, byte age) {
-        Transaction transaction = null;
         try (Session session = Util.getSessionFactory().openSession()) {
-
             transaction = session.beginTransaction();
-            User user = new User(name, lastName, age);
-            session.save(user);
-
+            Query query = session.createQuery(
+                    "update User "
+                    + "SET name = :n "
+                    +   ", lastName  = :l "
+                    +   ", age     = :d "
+                    +  " where id = id ");
+            //query.setParameter("idParam"  , User.class);
+//            query.setParameter("id", id++);
+            query.setParameter("n", name);
+            query.setParameter("l", lastName);
+            query.setParameter("d", age);
+            query.executeUpdate();
             transaction.commit();
         } catch (Exception e) {
             if (transaction != null) {
@@ -57,13 +76,12 @@ public class UserDaoHibernateImpl implements UserDao {
 
     @Override
     public void removeUserById(long id) {
-        Transaction transaction = null;
         try (Session session = Util.getSessionFactory().openSession()) {
             transaction = session.beginTransaction();
-            Query query = session.createQuery("DELETE User WHERE id = id");
-            query.executeUpdate();
-//            User user = session.get(User.class, id);
-//            session.remove(user);
+//            Query query = session.createQuery("DELETE User WHERE id = id");
+//            query.executeUpdate();
+            User user = session.get(User.class, id);
+            session.remove(user);
             transaction.commit();
         } catch (Exception e) {
             if (transaction != null) {
@@ -82,18 +100,8 @@ public class UserDaoHibernateImpl implements UserDao {
 
     @Override
     public void cleanUsersTable() {
-        Transaction transaction = null;
-        try (Session session = Util.getSessionFactory().openSession()) {
-            transaction = session.beginTransaction();
-            Query query = session.createQuery("DELETE FROM User");
-            query.executeUpdate();
-            transaction.commit();
-        } catch (Exception e) {
-            if (transaction != null) {
-                transaction.rollback();
-            }
-            e.printStackTrace();
-        }
-
+        dropUsersTable();
+        List<User> userListDelete = getAllUsers();
+        userListDelete.clear();
     }
 }
